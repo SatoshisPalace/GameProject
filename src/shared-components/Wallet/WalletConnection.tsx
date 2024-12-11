@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { connect, createDataItemSigner } from "@permaweb/aoconnect";
+import { dryrun } from '../../config/aoConnection';
 import { useWallet } from './WalletContext';
-import { BazarProfile } from './types';
+import UserProfile from '../UserProfile/UserProfile';
 
-const { result, results, message, spawn, monitor, unmonitor, dryrun, } = connect({
-  MU_URL: "https://mu.ao-testnet.xyz",
-  CU_URL: "https://cu.ao-testnet.xyz",
-  GATEWAY_URL: "https://arweave.net",
-});
+const WalletContainer = styled.div`
+  display: flex;
+  align-items: center;
+  gap: 12px;
+`;
 
 const WalletButton = styled.button`
   background: rgba(108, 92, 231, 0.2);
@@ -50,7 +50,13 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
   isConnected: externalIsConnected,
 }) => {
   const [isLoading, setIsLoading] = useState(false);
-  const { isConnected: contextIsConnected, connect: contextConnect, disconnect: contextDisconnect } = useWallet();
+  const { 
+    isConnected: contextIsConnected, 
+    connect: contextConnect, 
+    disconnect: contextDisconnect,
+    address,
+    bazarProfile
+  } = useWallet();
 
   // Use external isConnected prop if provided, otherwise use context value
   const isConnected = typeof externalIsConnected !== 'undefined' ? externalIsConnected : contextIsConnected;
@@ -72,18 +78,31 @@ const WalletConnection: React.FC<WalletConnectionProps> = ({
     onDisconnect?.();
   };
 
+  const handleCopyAddress = (addr: string) => {
+    navigator.clipboard.writeText(addr);
+  };
+
   return (
-    <>
+    <WalletContainer>
       {!isConnected ? (
         <WalletButton onClick={handleConnect} disabled={isLoading}>
           {isLoading ? 'Connecting...' : 'Connect Wallet'}
         </WalletButton>
       ) : (
-        <WalletButton onClick={handleDisconnect}>
-          Disconnect
-        </WalletButton>
+        <>
+          {address && (
+            <UserProfile 
+              address={address}
+              bazarProfile={bazarProfile}
+              onCopyAddress={handleCopyAddress}
+            />
+          )}
+          <WalletButton onClick={handleDisconnect}>
+            Disconnect
+          </WalletButton>
+        </>
       )}
-    </>
+    </WalletContainer>
   );
 };
 

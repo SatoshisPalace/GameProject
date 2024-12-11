@@ -1,12 +1,7 @@
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { BazarProfile } from './types';
-import { connect } from "@permaweb/aoconnect";
-
-const { dryrun } = connect({
-  MU_URL: "https://mu.ao-testnet.xyz",
-  CU_URL: "https://cu.ao-testnet.xyz",
-  GATEWAY_URL: "https://arweave.net",
-});
+import { dryrun } from '../../config/aoConnection';
+import { checkBazarProfile } from './utils/bazarProfile';
 
 interface WalletContextType {
   isConnected: boolean;
@@ -26,64 +21,6 @@ export const WalletProvider: React.FC<WalletProviderProps> = ({ children }) => {
   const [isConnected, setIsConnected] = useState(false);
   const [address, setAddress] = useState<string | null>(null);
   const [bazarProfile, setBazarProfile] = useState<BazarProfile | null>(null);
-
-  const checkBazarProfile = async (address: string, retryCount = 0): Promise<BazarProfile | null> => {
-    try {
-      console.log("=== Starting Bazar profile check ===", { retryCount });
-      console.log("Looking for bazar profile for wallet:", address);
-      const BAZAR_PROCESS = "SNy4m-DrqxWl01YqGM4sxI8qCni-58re8uuJLvZPypY";
-      
-      const profileResult = await dryrun({
-        process: BAZAR_PROCESS,
-        data: JSON.stringify({
-          Address: address
-        }),
-        tags: [
-          { name: "Action", value: "Get-Profiles-By-Delegate" },
-        ]
-      });
-
-      if (!profileResult?.Messages?.length && retryCount < 3) {
-        console.log(`No content received, retrying in 1 second... (attempt ${retryCount + 1}/3)`);
-        await new Promise(resolve => setTimeout(resolve, 1000));
-        return checkBazarProfile(address, retryCount + 1);
-      }
-
-      if (profileResult?.Messages?.[0]?.Data) {
-        try {
-          const profileData = JSON.parse(profileResult.Messages[0].Data);
-          if (Array.isArray(profileData) && profileData.length > 0 && profileData[0].ProfileId) {
-            const profileId = profileData[0].ProfileId;
-            console.log("Found ProfileId:", profileId);
-
-            const infoResult = await dryrun({
-              process: profileId,
-              data: JSON.stringify({
-                ProfileId: profileId
-              }),
-              tags: [
-                { name: "Action", value: "Info" },
-              ]
-            });
-
-            if (infoResult?.Messages?.[0]?.Data) {
-              const profileInfo = JSON.parse(infoResult.Messages[0].Data);
-              const profile = profileInfo?.Profile;
-              if (profile?.DisplayName) {
-                console.log('Found Bazar Profile Display Name:', profile.DisplayName);
-                return profile;
-              }
-            }
-          }
-        } catch (parseError) {
-          console.error('Error parsing profile data:', parseError);
-        }
-      }
-    } catch (profileError) {
-      console.error('Error checking Bazar profile:', profileError);
-    }
-    return null;
-  };
 
   const handleConnect = async () => {
     if (window.arweaveWallet) {

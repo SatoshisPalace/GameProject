@@ -1,8 +1,17 @@
-import { message, createDataItemSigner, dryrun } from "@permaweb/aoconnect";
+import { message, createDataItemSigner, dryrun } from "../../../config/aoConnection";
 import { LeaderboardEntry, LeaderboardState, PlayerData, GameStats, TotalGameStats } from "../types/leaderboard";
 import { rateLimiter } from "./rateLimiter";
 
 const PROCESS_ID = "iI1AHVB85pQ9_Y67TDPS52PXOjxZOxwNV55JZemYpxM";
+
+// Type guard to check if the entry has the correct shape
+function isValidEntry(entry: unknown): entry is { score: string | number; timestamp: string; username?: string } {
+    return typeof entry === 'object' && entry !== null && 
+           'score' in entry && 
+           'timestamp' in entry &&
+           (typeof (entry as any).score === 'string' || typeof (entry as any).score === 'number') &&
+           typeof (entry as any).timestamp === 'string';
+}
 
 export const submitScore = async (
     wallet: any,
@@ -143,7 +152,7 @@ export const getPlayerHistory = async (
 
                 const scores = Object.values(response.data || {});
                 console.log('Retrieved scores:', scores);
-                if (!Array.isArray(scores)) {
+                if (!scores || !Array.isArray(scores)) {
                     return {
                         walletAddress,
                         username: 'Unknown Player',
@@ -152,13 +161,19 @@ export const getPlayerHistory = async (
                     };
                 }
 
-                const playerScores = scores.map((entry: any) => ({
-                    score: Number(entry.score),
-                    timestamp: entry.timestamp
-                }));
+                const playerScores = scores.map((entry) => {
+                    if (!isValidEntry(entry)) {
+                        throw new Error('Invalid entry format in scores');
+                    }
+                    return {
+                        score: Number(entry.score),
+                        timestamp: entry.timestamp
+                    };
+                });
 
                 return {
                     walletAddress,
+                    //@ts-ignore
                     username: scores[0]?.username || 'Unknown Player',
                     scores: playerScores,
                     totalScore: playerScores.reduce((sum, entry) => sum + entry.score, 0)

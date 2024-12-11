@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { LeaderboardEntry, PlayerData, GameStats, TotalGameStats } from '../types/leaderboard';
 import { getTopPlayers, getPlayerHistory, getGameStats, getRecentPlayers, getTotalGameStats } from '../utils/leaderboard';
 import { useWallet } from '../../Wallet/WalletContext';
+import UserProfile from '../../UserProfile/UserProfile';
 
 const LeaderboardContainer = styled.div`
   position: fixed;
@@ -497,13 +498,13 @@ const formatTimeAgo = (timestamp: string | number) => {
   const now = Date.now();
   const timestampMs = typeof timestamp === 'string' ? new Date(timestamp).getTime() : timestamp * 1000;
   
-  console.log('Timestamp debug:', {
-    originalTimestamp: timestamp,
-    timestampInMs: timestampMs,
-    currentTime: now,
-    difference: now - timestampMs,
-    diffInSeconds: Math.floor((now - timestampMs) / 1000)
-  });
+  // console.log('Timestamp debug:', {
+  //   originalTimestamp: timestamp,
+  //   timestampInMs: timestampMs,
+  //   currentTime: now,
+  //   difference: now - timestampMs,
+  //   diffInSeconds: Math.floor((now - timestampMs) / 1000)
+  // });
   
   const diffSeconds = Math.floor((now - timestampMs) / 1000);
   
@@ -570,7 +571,7 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ gameId }) => {
     };
 
     fetchData();
-    const interval = setInterval(fetchData, 30000); // Refresh every 30 seconds
+    const interval = setInterval(fetchData, 10000); // Refresh every 30 seconds
     return () => clearInterval(interval);
   }, [gameId]);
 
@@ -588,26 +589,14 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ gameId }) => {
     <LeaderboardContainer>
       <PlayerInfoSection>
         <HeaderSection>
-          <SectionTitle>Your Info</SectionTitle>
-          {isConnected && address ? (
-            <UserInfoContainer>
-              <ProfileImage imageUrl={bazarProfile?.ProfileImage} />
-              <NameAndAddressContainer>
-                <PlayerNameAndWallet>{bazarProfile?.DisplayName || 'Anon'}</PlayerNameAndWallet>
-                <WalletAddress onClick={() => copyAddressToClipboard(address)}>
-                  {address.slice(0, 3)}...{address.slice(-3)}
-                </WalletAddress>
-                {bazarProfile?.ProfileId && (
-                  <WalletAddress onClick={() => {
-                    console.log("[LEADERBOARD] Copying ProfileId:", bazarProfile.ProfileId);
-                    copyAddressToClipboard(bazarProfile.ProfileId!);
-                  }}>
-                    ID: {bazarProfile.ProfileId!.slice(0, 3)}...{bazarProfile.ProfileId!.slice(-3)}
-                  </WalletAddress>
-                )}
-              </NameAndAddressContainer>
-            </UserInfoContainer>
-          ) : null}
+        <SectionTitle>Your Info</SectionTitle>
+    {isConnected && address && (
+      <UserProfile 
+        address={address} 
+        bazarProfile={bazarProfile}
+        onCopyAddress={copyAddressToClipboard}
+      />
+    )}
         </HeaderSection>
         
         {isConnected && address ? (
@@ -656,12 +645,10 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ gameId }) => {
                   {index < 3 && <Badge type={['gold', 'silver', 'bronze'][index] as 'gold' | 'silver' | 'bronze'}>●</Badge>}
                   #{index + 1}
                 </Rank>
-                <PlayerDetails>
-                  <span>{entry.username || 'Anon'}</span>
-                  <WalletAddress onClick={() => copyAddressToClipboard(entry.walletAddress)}>
-                    {entry.walletAddress.slice(0, 3)}...{entry.walletAddress.slice(-3)}
-                  </WalletAddress>
-                </PlayerDetails>
+                      <UserProfile 
+        address={entry.walletAddress} 
+        onCopyAddress={copyAddressToClipboard}
+      />
               </PlayerInfoLeft>
               <PlayerScore>{entry.score.toLocaleString()}</PlayerScore>
             </PlayerEntry>
@@ -683,16 +670,11 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ gameId }) => {
                 key={`${player.walletAddress}-${player.timestamp}`}
                 $isNew={index === 0 && (Date.now() - new Date(player.timestamp).getTime()) < 30000}
               >
-                <RecentPlayerInfo>
-                  <span className="name">{player.username || 'Anonymous'}</span>
-                  <WalletAddress
-                    href={`https://permagate.io/${player.walletAddress}`}
-                    target="_blank"
-                    rel="noopener noreferrer"
-                  >
-                    {`${player.walletAddress.slice(0, 6)}...${player.walletAddress.slice(-4)}`}
-                  </WalletAddress>
-                </RecentPlayerInfo>
+
+                                      <UserProfile 
+        address={player.walletAddress} 
+        onCopyAddress={copyAddressToClipboard}
+      />
                 <RecentPlayerScore>{player.score.toLocaleString()}</RecentPlayerScore>
                 <TimeAgo>{formatTimeAgo(player.timestamp)}</TimeAgo>
               </RecentPlayer>
