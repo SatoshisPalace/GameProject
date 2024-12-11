@@ -46,12 +46,19 @@ const PongGame: React.FC = () => {
     }
   };
 
+  const handleRestart = () => {
+    setScore(0);
+    setIsGameOver(false);
+    setTransactionId('');
+  };
+
   return (
     <GameContainer>
       <HUD score={score} gameId={'PONG'} />
       <Game 
         onScoreUpdate={handleScoreUpdate}
         onGameOver={handleGameOver}
+        onRestart={handleRestart}
       />
       {isSavingScore && <div>Saving score...</div>}
       {transactionId && (

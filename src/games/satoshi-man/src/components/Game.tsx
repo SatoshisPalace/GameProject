@@ -1,6 +1,7 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import GameOver from '../../../../shared-components/Game-over/GameOver';
+import WalletConnection from '../../../../shared-components/Wallet/WalletConnection';
 
 const CELL_SIZE = 20;
 const BOARD_WIDTH = 28;
@@ -16,10 +17,8 @@ const GameContainer = styled.div`
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  margin: 0;
-  padding: 0;
+  margin: 200px auto 20px;
   width: fit-content;
-  height: fit-content;
   position: relative;
 `;
 
@@ -305,7 +304,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
       if (gameStateRef.current.dots.has(dotKey)) {
         gameStateRef.current.dots.delete(dotKey);
         maze[gridY][gridX] = 0; // Remove dot from maze
-        scoreRef.current += 10;
+        scoreRef.current += 1; // Changed from 10 to 1 to balance with other games
         onScoreUpdate(scoreRef.current);
       }
     }

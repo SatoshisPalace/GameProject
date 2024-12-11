@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
-import { WalletProvider, useWallet } from '../../../shared-components/Wallet/WalletContext';
+import { WalletProvider } from '../../../shared-components/Wallet/WalletContext';
+import { ScoreProvider, useScore } from '../../../shared-components/Score/ScoreContext';
 import Game from './components/Game';
-import HUD from './components/HUD';
-import { submitScore } from '../../../shared-components/Leaderboard/utils/leaderboard';
+import HUD from '../../../shared-components/HUD/HUD';
 
 const AppContainer = styled.div`
   width: fit-content;
@@ -19,47 +19,28 @@ const AppContainer = styled.div`
 `;
 
 const GameContent: React.FC = () => {
-  const [currentScore, setCurrentScore] = useState(0);
-  const [isSavingScore, setIsSavingScore] = useState(false);
   const [gameKey, setGameKey] = useState(0);
-  const { address } = useWallet();
+  const { currentScore, updateScore, handleGameOver } = useScore();
 
   const handleScoreUpdate = (score: number) => {
-    setCurrentScore(score);
+    updateScore(score);
   };
 
-  const handleGameOver = async () => {
-    console.log('Game Over - Current Score:', currentScore);
-    
-    if (!address) {
-      console.log('No wallet connected, skipping score submission');
-      return;
-    }
-
-    setIsSavingScore(true);
-    try {
-      console.log('Submitting score to AO process...');
-      const result = await submitScore({ address }, 'SATOSHIMAN', currentScore);
-      console.log('Score submitted successfully:', result);
-    } catch (error) {
-      console.error('Error saving score:', error);
-    } finally {
-      setIsSavingScore(false);
-    }
+  const handleGameFinish = async (finalScore: number) => {
+    await handleGameOver('SATOSHI', finalScore);
   };
 
   const handleRestart = () => {
-    setCurrentScore(0);
     setGameKey(prev => prev + 1);
   };
 
   return (
     <AppContainer>
-      <HUD score={currentScore} />
-      <Game 
+      <HUD score={currentScore} gameId="SATOSHI" />
+      <Game
         key={gameKey}
         onScoreUpdate={handleScoreUpdate}
-        onGameOver={handleGameOver}
+        onGameOver={handleGameFinish}
         onRestart={handleRestart}
       />
     </AppContainer>
@@ -69,7 +50,9 @@ const GameContent: React.FC = () => {
 const App: React.FC = () => {
   return (
     <WalletProvider>
-      <GameContent />
+      <ScoreProvider>
+        <GameContent />
+      </ScoreProvider>
     </WalletProvider>
   );
 };

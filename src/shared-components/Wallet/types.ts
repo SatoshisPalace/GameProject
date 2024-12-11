@@ -7,4 +7,5 @@ export interface BazarProfile {
   Description: string;
   CoverImage: string;
   UserName: string;
+  ProfileId?: string;
 }

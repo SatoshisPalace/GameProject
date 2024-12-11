@@ -1,5 +1,5 @@
 /** @jsxImportSource react */
-import React, { useState, lazy, Suspense } from 'react';
+import React, { useState, lazy, Suspense, useEffect } from 'react';
 import styled from 'styled-components';
 import WalletConnection from '../shared-components/Wallet/WalletConnection';
 import { WalletProvider } from '../shared-components/Wallet/WalletContext';
@@ -13,7 +13,7 @@ import '../styles/HeroAnimation.css';
 const PongGame = lazy(() => import('../games/PongGame'));
 const TetrisGame = lazy(() => import('../games/TetrisGame'));
 const SatoshiManGame = lazy(() => import('../games/SatoshiManGame'));
-const BlobGame = lazy(() => import('../games/BlobGame'));
+const FeastFamine = lazy(() => import('../games/FeastFamine'));
 
 const GamesGrid = styled.div`
   display: grid;
@@ -241,8 +241,22 @@ const LandingPage: React.FC = () => {
   };
 
   const handleCloseGame = () => {
-    setSelectedGame(null);
+    if (selectedGame?.component === 'FEASTFAMINE') {
+      setSelectedGame(null);
+      // Only refresh when explicitly closing FeastFamine
+      window.location.reload();
+    } else {
+      setSelectedGame(null);
+      document.body.style.overflow = 'auto';
+    }
   };
+
+  useEffect(() => {
+    // Cleanup function when game component unmounts
+    return () => {
+      document.body.style.overflow = 'auto';
+    };
+  }, [selectedGame]);
 
   const renderGameComponent = () => {
     if (!selectedGame) return null;
@@ -255,6 +269,7 @@ const LandingPage: React.FC = () => {
             {selectedGame?.component === 'PongGame' && <PongGame />}
             {selectedGame?.component === 'TetrisGame' && <TetrisGame />}
             {selectedGame?.component === 'SatoshiManGame' && <SatoshiManGame />}
+            {selectedGame?.component === 'FEASTFAMINE' && <FeastFamine />}
           </WalletProvider>
         </Suspense>
       </GameContainer>

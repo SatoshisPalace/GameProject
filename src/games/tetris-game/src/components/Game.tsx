@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import GameOver from '../../../../shared-components/Game-over/GameOver';
+import Leaderboard from '../../../../shared-components/Leaderboard/components/Leaderboard';
+import WalletConnection from '../../../../shared-components/Wallet/WalletConnection';
 
 const GameContainer = styled.div`
   display: flex;
@@ -18,10 +20,45 @@ const Canvas = styled.canvas`
   box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
 `;
 
+const HUDContainer = styled.div`
+  position: absolute;
+  top: 20px;
+  left: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+`;
+
+const Logo = styled.img`
+  width: 50px;
+  height: 50px;
+  margin-bottom: 20px;
+`;
+
+const LeaderboardWrapper = styled.div`
+  margin-bottom: 20px;
+`;
+
+const WalletContainer = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+`;
+
+const Score = styled.div`
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+`;
+
 interface GameProps {
   onScoreUpdate: (score: number) => void;
   onGameOver: (finalScore: number) => Promise<void>;
   onRestart: () => void;
+}
+
+interface HUDProps {
+  score: number;
 }
 
 const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => {
@@ -32,7 +69,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
   const [gameStarted, setGameStarted] = useState(false);
   const requestRef = useRef<number>();
   const lastTimeRef = useRef<number>();
-  
+
   const gameStateRef = useRef({
     board: Array(22).fill(null).map(() => Array(14).fill(0)),
     currentPiece: {
@@ -83,9 +120,9 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
         if (piece.shape[y][x] !== 0) {
           const boardX = piece.x + x;
           const boardY = piece.y + y;
-          
+
           if (
-            boardX < 0 || 
+            boardX < 0 ||
             boardX >= BOARD_WIDTH ||
             boardY >= BOARD_HEIGHT ||
             (boardY >= 0 && board[boardY][boardX] !== 0)
@@ -109,10 +146,11 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
   };
 
   const updateScore = useCallback((newScore: number) => {
+    // Prevent any score updates if game is over
     if (isGameOver) return;
+    
     scoreRef.current = newScore;
     onScoreUpdate(newScore);
-    console.log('Score updated:', newScore);
   }, [onScoreUpdate, isGameOver]);
 
   const clearLines = () => {
@@ -123,21 +161,23 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
           continue outer;
         }
       }
-      
+
       const row = gameStateRef.current.board.splice(y, 1)[0].fill(0);
       gameStateRef.current.board.unshift(row);
       linesCleared++;
       y++;
     }
-    
+
     if (linesCleared > 0) {
-      const newScore = scoreRef.current + linesCleared * 100;
+      const newScore = scoreRef.current + linesCleared * 15;
       updateScore(newScore);
     }
   };
 
   const drop = () => {
+    // Return immediately if game is over
     if (isGameOver) return;
+    
     const state = gameStateRef.current;
     state.currentPiece.y++;
     
@@ -152,6 +192,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
       
       if (collide(state.board, state.currentPiece)) {
         handleGameOver();
+        return; // Exit immediately after game over
       }
     }
     
@@ -159,6 +200,9 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
   };
 
   const move = (dir: number) => {
+    // Also prevent movement if game is over
+    if (isGameOver) return;
+    
     const state = gameStateRef.current;
     state.currentPiece.x += dir;
     if (collide(state.board, state.currentPiece)) {
@@ -167,6 +211,9 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
   };
 
   const rotate = () => {
+    // Prevent rotation if game is over
+    if (isGameOver) return;
+    
     const state = gameStateRef.current;
     const piece = state.currentPiece;
     const original = piece.shape;
@@ -181,16 +228,39 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
     }
   };
 
+  const handleKeyDown = (event: KeyboardEvent) => {
+    // Prevent any key actions if game is over
+    if (isGameOver) {
+      event.preventDefault();
+      return;
+    }
+    
+    switch (event.key) {
+      case 'ArrowLeft':
+        move(-1);
+        break;
+      case 'ArrowRight':
+        move(1);
+        break;
+      case 'ArrowDown':
+        drop();
+        break;
+      case 'ArrowUp':
+        rotate();
+        break;
+    }
+  };
+
   const draw = () => {
     const canvas = canvasRef.current;
     if (!canvas) return;
-    
+
     const ctx = canvas.getContext('2d');
     if (!ctx) return;
-    
+
     ctx.fillStyle = '#000';
     ctx.fillRect(0, 0, canvas.width, canvas.height);
-    
+
     // Draw board
     gameStateRef.current.board.forEach((row, y) => {
       row.forEach((value, x) => {
@@ -202,7 +272,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
         }
       });
     });
-    
+
     // Draw current piece
     const { shape, x, y } = gameStateRef.current.currentPiece;
     shape.forEach((row: number[], pieceY: number) => {
@@ -231,20 +301,24 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
     if (isGameOver) {
       if (requestRef.current) {
         cancelAnimationFrame(requestRef.current);
+        requestRef.current = undefined;
       }
       return;
     }
-    
+
     const deltaTime = time - (lastTimeRef.current || 0);
     lastTimeRef.current = time;
-    
+
     gameStateRef.current.dropCounter += deltaTime;
     if (gameStateRef.current.dropCounter > gameStateRef.current.dropInterval) {
       drop();
     }
-    
+
     draw();
-    requestRef.current = requestAnimationFrame(update);
+    // Only request next frame if game is not over
+    if (!isGameOver) {
+      requestRef.current = requestAnimationFrame(update);
+    }
   };
 
   const resetGame = useCallback(() => {
@@ -269,33 +343,29 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
   }, [onScoreUpdate]);
 
   const handleGameOver = useCallback(async () => {
+    // Store final score before setting game over
+    const finalScore = scoreRef.current;
+    
     setIsGameOver(true);
     setIsSavingScore(true);
+
+    // Cancel the animation frame immediately
+    if (requestRef.current) {
+      cancelAnimationFrame(requestRef.current);
+      requestRef.current = undefined;
+    }
+
+    // Reset drop counter and interval to prevent any more drops
+    gameStateRef.current.dropCounter = 0;
+    gameStateRef.current.dropInterval = Infinity;
+
     try {
-      await onGameOver(scoreRef.current);
+      // Use stored final score
+      await onGameOver(finalScore);
     } finally {
       setIsSavingScore(false);
     }
   }, [onGameOver]);
-
-  const handleKeyDown = (event: KeyboardEvent) => {
-    if (isGameOver) return;
-    
-    switch (event.key) {
-      case 'ArrowLeft':
-        move(-1);
-        break;
-      case 'ArrowRight':
-        move(1);
-        break;
-      case 'ArrowDown':
-        drop();
-        break;
-      case 'ArrowUp':
-        rotate();
-        break;
-    }
-  };
 
   const handleRestart = () => {
     resetGame();
@@ -305,14 +375,14 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
 
   useEffect(() => {
     if (!canvasRef.current) return;
-    
+
     canvasRef.current.width = BLOCK_SIZE * BOARD_WIDTH;
     canvasRef.current.height = BLOCK_SIZE * BOARD_HEIGHT;
-    
+
     resetGame();
     window.addEventListener('keydown', handleKeyDown);
     requestRef.current = requestAnimationFrame(update);
-    
+
     return () => {
       window.removeEventListener('keydown', handleKeyDown);
       if (requestRef.current) {
@@ -335,19 +405,32 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
     };
   }, []);
 
+  useEffect(() => {
+    // Remove keydown listener when game is over
+    if (isGameOver) {
+      window.removeEventListener('keydown', handleKeyDown);
+    } else {
+      window.addEventListener('keydown', handleKeyDown);
+    }
+    
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [isGameOver, handleKeyDown]);
+
   return (
     <GameContainer>
       <Canvas ref={canvasRef} />
       {isGameOver && (
-        <GameOver 
-          score={scoreRef.current} 
+        <GameOver
+          score={scoreRef.current}
           onRestart={() => {
             setIsGameOver(false);
             setGameStarted(false);
             scoreRef.current = 0;
             onScoreUpdate(0);
             onRestart();
-          }} 
+          }}
           isSavingScore={isSavingScore}
         />
       )}

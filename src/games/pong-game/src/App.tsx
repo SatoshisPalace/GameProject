@@ -1,9 +1,9 @@
 import React, { useState } from 'react';
 import styled from 'styled-components';
 import Game from './components/Game';
-import HUD from './components/HUD';
-import { submitScore } from '../../../shared-components/Leaderboard/utils/leaderboard';
+import HUD from '../../../shared-components/HUD/HUD';
 import { WalletProvider } from '../../../shared-components/Wallet/WalletContext';
+import { ScoreProvider, useScore } from '../../../shared-components/Score/ScoreContext';
 
 const AppContainer = styled.div`
   width: 100%;
@@ -17,62 +17,42 @@ const AppContainer = styled.div`
   position: relative;
 `;
 
-const App: React.FC = () => {
-  const [currentScore, setCurrentScore] = useState(0);
-  const [currentWalletAddress, setCurrentWalletAddress] = useState<string>('');
-  const [isSavingScore, setIsSavingScore] = useState(false);
+const GameContent: React.FC = () => {
+  const { currentScore, updateScore, handleGameOver } = useScore();
+  const [gameKey, setGameKey] = useState(0);
 
   const handleScoreUpdate = (score: number) => {
-    setCurrentScore(score);
+    updateScore(score);
   };
 
-  const handleWalletConnect = (address: string) => {
-    console.log('Wallet connected in Tetris App:', address);
-    setCurrentWalletAddress(address);
+  const handleGameFinish = async (finalScore: number) => {
+    await handleGameOver('PONG', finalScore);
   };
 
-  const handleGameOver = async () => {
-    console.log('Game Over in Tetris App - Current Score:', currentScore);
-    console.log('Current wallet address:', currentWalletAddress);
-    
-    if (!currentWalletAddress) {
-      console.log('No wallet connected, skipping score submission');
-      return;
-    }
-
-    if (!window.arweaveWallet) {
-      console.log('ArweaveWallet not found, skipping score submission');
-      return;
-    }
-
-    setIsSavingScore(true);
-    try {
-      console.log('Submitting score to AO process...');
-      const result = await submitScore(
-        window.arweaveWallet,
-        'TETRIS',
-        currentScore
-      );
-      console.log('Score submitted successfully:', result);
-    } catch (error) {
-      console.error('Error saving score:', error);
-    } finally {
-      setIsSavingScore(false);
-    }
+  const handleRestart = () => {
+    setGameKey(prev => prev + 1);
   };
 
   return (
     <AppContainer>
-      <WalletProvider>
-      <HUD 
-        score={currentScore}
-      />
-      <Game 
+      <HUD score={currentScore} gameId="PONG" />
+      <Game
+        key={gameKey}
         onScoreUpdate={handleScoreUpdate}
-        onGameOver={handleGameOver}
+        onGameOver={handleGameFinish}
+        onRestart={handleRestart}
       />
-      </WalletProvider>
     </AppContainer>
+  );
+};
+
+const App: React.FC = () => {
+  return (
+    <WalletProvider>
+      <ScoreProvider>
+        <GameContent />
+      </ScoreProvider>
+    </WalletProvider>
   );
 };
 

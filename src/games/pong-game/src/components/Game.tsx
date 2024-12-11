@@ -1,6 +1,8 @@
 import React, { useEffect, useRef, useState, useCallback } from 'react';
 import styled from 'styled-components';
 import GameOver from '../../../../shared-components/Game-over/GameOver';
+import Leaderboard from '../../../../shared-components/Leaderboard/components/Leaderboard';
+import WalletConnection from '../../../../shared-components/Wallet/WalletConnection';
 
 const GameContainer = styled.div`
   display: flex;
@@ -18,12 +20,62 @@ const Canvas = styled.canvas`
   box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
 `;
 
+const HUDContainer = styled.div`
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+`;
+
+const Logo = styled.img`
+  width: 40px;
+  height: 40px;
+  margin-right: 10px;
+`;
+
+const LeaderboardWrapper = styled.div`
+  margin-bottom: 20px;
+`;
+
+const WalletContainer = styled.div`
+  margin-bottom: 20px;
+  display: flex;
+  align-items: center;
+`;
+
+const Score = styled.div`
+  font-size: 24px;
+  font-weight: bold;
+  margin-top: 10px;
+`;
+
+interface HUDProps {
+  score: number;
+}
+
+const HUD: React.FC<HUDProps> = ({ score }) => {
+  return (
+    <>
+      <HUDContainer>
+        <LeaderboardWrapper>
+          <Leaderboard gameId="PONG" />
+        </LeaderboardWrapper>
+      </HUDContainer>
+    </>
+  );
+};
+
 interface GameProps {
   onScoreUpdate: (score: number) => void;
   onGameOver: (finalScore: number) => Promise<void>;
+  onRestart: () => void;
 }
 
-const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver }) => {
+const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => {
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
@@ -32,6 +84,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver }) => {
   const [walletConnected, setWalletConnected] = useState(false);
   const requestRef = useRef<number>();
   const lastTimeRef = useRef<number>();
+  const GAME_ID = 'pong'; // Add game ID constant
 
   const CANVAS_WIDTH = 800;
   const CANVAS_HEIGHT = 600;
@@ -354,20 +407,37 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver }) => {
     ctx.shadowBlur = 0;
   };
 
-  const gameLoop = useCallback((timestamp: number) => {
-    if (!lastTimeRef.current) {
-      lastTimeRef.current = timestamp;
+  useEffect(() => {
+    // Game loop
+    const gameLoop = (time: number = 0) => {
+      if (gameStarted && !isGameOver) {
+        updateGame();
+        draw();
+        requestRef.current = requestAnimationFrame(gameLoop);
+      }
+    };
+
+    if (gameStarted && !isGameOver) {
+      gameLoop();
     }
 
-    const deltaTime = timestamp - lastTimeRef.current;
-    lastTimeRef.current = timestamp;
+    // Cleanup function
+    return () => {
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = undefined;
+      }
+    };
+  }, [gameStarted, isGameOver]);
 
-    if (!isGameOver) {
-      updateGame();
-      draw();
-      requestRef.current = requestAnimationFrame(gameLoop);
-    }
-  }, [isGameOver]);
+  useEffect(() => {
+    return () => {
+      if (requestRef.current) {
+        cancelAnimationFrame(requestRef.current);
+        requestRef.current = undefined;
+      }
+    };
+  }, []);
 
   useEffect(() => {
     const canvas = canvasRef.current;
@@ -408,23 +478,8 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver }) => {
       window.removeEventListener('walletconnect', handleWalletConnection);
       window.removeEventListener('keydown', handleKeyDown);
       window.removeEventListener('keyup', handleKeyUp);
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
-      }
     };
   }, []);
-
-  useEffect(() => {
-    if (gameStarted && !isGameOver) {
-      lastTimeRef.current = performance.now();
-      requestRef.current = requestAnimationFrame(gameLoop);
-    }
-    return () => {
-      if (requestRef.current) {
-        cancelAnimationFrame(requestRef.current);
-      }
-    };
-  }, [gameStarted, isGameOver, gameLoop]);
 
   const handleStartGame = async () => {
     if (!window.arweaveWallet) {
@@ -451,17 +506,27 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver }) => {
     }
   };
 
-  const handlePlayAgain = () => {
+  const handleRestart = () => {
     setGameStarted(true);
     setIsGameOver(false);
     scoreRef.current = 0;
     onScoreUpdate(0);
     resetBall();
+    onRestart();
   };
 
   return (
     <GameContainer>
+      <Leaderboard gameId={GAME_ID} />
+      <HUD score={scoreRef.current} />
       <Canvas ref={canvasRef} />
+      {isGameOver && (
+        <GameOver 
+          score={scoreRef.current}
+          onRestart={handleRestart}
+          isSavingScore={isSavingScore}
+        />
+      )}
       {!gameStarted && (
         <div style={{ 
           position: 'absolute', 
@@ -494,13 +559,6 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver }) => {
             Start Game
           </button>
         </div>
-      )}
-      {isGameOver && (
-        <GameOver 
-          score={scoreRef.current} 
-          onRestart={handlePlayAgain}
-          isSavingScore={isSavingScore}
-        />
       )}
     </GameContainer>
   );

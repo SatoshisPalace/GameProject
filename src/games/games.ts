@@ -30,10 +30,10 @@ export const games: Game[] = [
     component: 'SatoshiManGame'
   },
   {
-    id: 'BLOB',
+    id: 'FEASTFAMINE',
     title: 'Feast or Famine',
-    description: 'Strategic masterpiece on the blockchain. Challenge players worldwide, secure your moves with blockchain technology.',
+    description: 'Control your blob and feast or famine in this exciting arcade game. Compete for the highest score!',
     status: 'live',
-    component: 'BlobGame'
-  }
+    component: 'FEASTFAMINE'
+  },
 ];

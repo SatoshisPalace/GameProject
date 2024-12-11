@@ -54,6 +54,8 @@ export const MainContainer = styled.div`
   color: white;
   display: flex;
   flex-direction: column;
+  height: calc(100vh - 100px);
+  overflow-y: hidden;
 
   &::before {
     content: '';
@@ -71,7 +73,7 @@ export const MainContainer = styled.div`
 `;
 
 export const Header = styled.header`
-  height: 100px;
+  height: 75px;
   margin: 0;
   padding: 20px 40px;
   display: flex;

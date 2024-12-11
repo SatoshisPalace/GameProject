@@ -17,10 +17,6 @@ const HUDContainer = styled.div`
 `;
 
 const Score = styled.div`
-  position: fixed;
-  bottom: 40px;
-  left: 50%;
-  transform: translateX(-50%);
   color: #6c5ce7;
   font-size: 36px;
   font-weight: bold;
@@ -30,6 +26,7 @@ const Score = styled.div`
   border-radius: 15px;
   border: 2px solid #6c5ce7;
   box-shadow: 0 0 20px rgba(108, 92, 231, 0.3);
+  margin-top: 10px;
 `;
 
 const Logo = styled.img`
@@ -45,6 +42,9 @@ const WalletContainer = styled.div`
   position: fixed;
   top: 20px;
   right: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
 `;
 
 interface HUDProps {
@@ -62,10 +62,10 @@ const HUD: React.FC<HUDProps> = ({ score, gameId, logoSrc = "/crown.avif" }) => 
         <Logo src={logoSrc} alt="Game Logo" />
         <WalletContainer>
           <WalletConnection />
+          <Score>Score: {score}</Score>
         </WalletContainer>
         <Leaderboard gameId={gameId} />
       </HUDContainer>
-      <Score>Score: {score}</Score>
     </>
   );
 };

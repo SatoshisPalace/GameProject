@@ -529,16 +529,26 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ gameId }) => {
   const { address, bazarProfile, isConnected } = useWallet();
 
   useEffect(() => {
+    console.log("[LEADERBOARD] Wallet Context state:", {
+      address,
+      bazarProfile: JSON.stringify(bazarProfile, null, 2),
+      isConnected,
+      hasProfileId: bazarProfile?.ProfileId ? 'yes' : 'no'
+    });
+  }, [address, bazarProfile, isConnected]);
+
+  const copyAddressToClipboard = (address: string) => {
+    console.log("[LEADERBOARD] Copying to clipboard:", address);
+    navigator.clipboard.writeText(address);
+  };
+
+  useEffect(() => {
     console.log("Wallet Context in Leaderboard:", {
       address,
       bazarProfile,
       isConnected
     });
   }, [address, bazarProfile, isConnected]);
-
-  const copyAddressToClipboard = (address: string) => {
-    navigator.clipboard.writeText(address);
-  };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -587,6 +597,14 @@ const Leaderboard: React.FC<LeaderboardProps> = ({ gameId }) => {
                 <WalletAddress onClick={() => copyAddressToClipboard(address)}>
                   {address.slice(0, 3)}...{address.slice(-3)}
                 </WalletAddress>
+                {bazarProfile?.ProfileId && (
+                  <WalletAddress onClick={() => {
+                    console.log("[LEADERBOARD] Copying ProfileId:", bazarProfile.ProfileId);
+                    copyAddressToClipboard(bazarProfile.ProfileId!);
+                  }}>
+                    ID: {bazarProfile.ProfileId!.slice(0, 3)}...{bazarProfile.ProfileId!.slice(-3)}
+                  </WalletAddress>
+                )}
               </NameAndAddressContainer>
             </UserInfoContainer>
           ) : null}
