@@ -267,8 +267,8 @@ const LandingPage: React.FC = () => {
         <Suspense fallback={<div>Loading game...</div>}>
           <WalletProvider>
             {selectedGame?.id === 'PONG' && <PongGame gameId={'PONG'} />}
-            {selectedGame?.id === 'BRICK_BLITZ' && <TetrisGame gameId={'BRICK_BLITZ'} />}
-            {selectedGame?.id === 'MAZE_MUNCHER' && <SatoshiManGame gameId={'MAZE_MUNCHER'} />}
+            {selectedGame?.id === 'TETRIS' && <TetrisGame gameId={'TETRIS'} />}
+            {selectedGame?.id === 'SATOSHI_MAN' && <SatoshiManGame gameId={'SATOSHI_MAN'} />}
             {selectedGame?.id === 'FEAST_OR_FAMINE' && <FeastFamine gameId={'FEAST_OR_FAMINE'} />}
           </WalletProvider>
         </Suspense>
