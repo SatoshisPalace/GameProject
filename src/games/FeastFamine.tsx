@@ -19,9 +19,14 @@ const GameWrapper = styled.div`
 
 interface BlobGameProps {
   onLeave?: () => void;
+  gameId: string;
 }
 
-const GameContent: React.FC = () => {
+interface GameContentProps {
+  gameId: string;
+}
+
+const GameContent: React.FC<GameContentProps> = ({ gameId }) => {
   const [gameKey, setGameKey] = useState(0);
   const { currentScore, updateScore, handleGameOver } = useScore();
   const { address, bazarProfile } = useWallet();
@@ -30,7 +35,7 @@ const GameContent: React.FC = () => {
     console.log('Game Over - Final Score:', finalScore);
     if (address) {
       try {
-        await handleGameOver('BLOB', finalScore);
+        await handleGameOver(gameId, finalScore);
         // Auto restart after game over
         setGameKey(prev => prev + 1);
         updateScore(0);
@@ -44,7 +49,7 @@ const GameContent: React.FC = () => {
 
   return (
     <GameWrapper>
-      <HUD score={currentScore} gameId="BLOB" />
+      <HUD score={currentScore} gameId={gameId} />
       <Game
         key={gameKey}
         onGameOver={handleGameFinish}
@@ -53,10 +58,10 @@ const GameContent: React.FC = () => {
   );
 };
 
-const BlobGame: React.FC<BlobGameProps> = () => {
+const BlobGame: React.FC<BlobGameProps> = ({ onLeave, gameId }) => {
   return (
     <ScoreProvider>
-      <GameContent />
+      <GameContent gameId={gameId} />
     </ScoreProvider>
   );
 };

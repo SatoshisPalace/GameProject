@@ -17,7 +17,7 @@ const GameWrapper = styled.div`
   position: relative;
 `;
 
-const TetrisGame: React.FC = () => {
+const TetrisGame: React.FC<{ gameId: string }> = ({ gameId }) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
@@ -35,7 +35,7 @@ const TetrisGame: React.FC = () => {
     if (address) {
       setIsSavingScore(true);
       try {
-        const result = await submitScore({ address }, 'TETRIS', finalScore);
+        const result = await submitScore({ address }, gameId, finalScore);
         setTransactionId(result.id);
         console.log('Score submitted successfully:', result);
       } catch (error) {
@@ -55,7 +55,7 @@ const TetrisGame: React.FC = () => {
 
   return (
     <GameWrapper>
-      <HUD score={score} gameId={'TETRIS'} />
+      <HUD score={score} gameId={gameId} />
       <Game
         key={gameKey}
         onScoreUpdate={handleScoreUpdate}

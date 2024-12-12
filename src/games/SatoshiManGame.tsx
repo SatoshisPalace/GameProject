@@ -22,7 +22,7 @@ const GameWrapper = styled.div`
   height: 100%;
 `;
 
-const SatoshiManGame: React.FC = () => {
+const SatoshiManGame: React.FC<{ gameId: string }> = ({ gameId }) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
@@ -41,7 +41,7 @@ const SatoshiManGame: React.FC = () => {
     if (address) {
       setIsSavingScore(true);
       try {
-        const result = await submitScore({ address }, 'SATOSHIMAN', finalScore);
+        const result = await submitScore({ address }, gameId, finalScore);
         setTransactionId(result.id);
         console.log('Score submitted successfully:', result);
       } catch (error) {
@@ -50,7 +50,7 @@ const SatoshiManGame: React.FC = () => {
         setIsSavingScore(false);
       }
     }
-  }, [address]);
+  }, [address, gameId]);
 
   const handleRestart = useCallback(() => {
     setIsGameOver(false);
@@ -61,7 +61,7 @@ const SatoshiManGame: React.FC = () => {
 
   return (
     <GameContainer>
-      <HUD score={score} gameId={'SATOSHIMAN'} />
+      <HUD score={score} gameId={gameId} />
       <GameWrapper>
         <Game
           key={gameKey}

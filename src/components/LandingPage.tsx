@@ -241,7 +241,7 @@ const LandingPage: React.FC = () => {
   };
 
   const handleCloseGame = () => {
-    if (selectedGame?.component === 'FEASTFAMINE') {
+    if (selectedGame?.id === 'FEAST_OR_FAMINE') {
       setSelectedGame(null);
       // Only refresh when explicitly closing FeastFamine
       window.location.reload();
@@ -266,10 +266,10 @@ const LandingPage: React.FC = () => {
         <CloseButton onClick={handleCloseGame}></CloseButton>
         <Suspense fallback={<div>Loading game...</div>}>
           <WalletProvider>
-            {selectedGame?.component === 'PongGame' && <PongGame />}
-            {selectedGame?.component === 'TetrisGame' && <TetrisGame />}
-            {selectedGame?.component === 'SatoshiManGame' && <SatoshiManGame />}
-            {selectedGame?.component === 'FEASTFAMINE' && <FeastFamine />}
+            {selectedGame?.id === 'PONG' && <PongGame gameId={'PONG'} />}
+            {selectedGame?.id === 'BRICK_BLITZ' && <TetrisGame gameId={'BRICK_BLITZ'} />}
+            {selectedGame?.id === 'MAZE_MUNCHER' && <SatoshiManGame gameId={'MAZE_MUNCHER'} />}
+            {selectedGame?.id === 'FEAST_OR_FAMINE' && <FeastFamine gameId={'FEAST_OR_FAMINE'} />}
           </WalletProvider>
         </Suspense>
       </GameContainer>
@@ -314,7 +314,7 @@ const LandingPage: React.FC = () => {
             <div key={game.id} style={{ position: 'relative' }}>
               <GameCard onClick={() => handlePlayGame(game)} className={game.status === 'coming_soon' ? 'coming-soon' : ''}>
                 <GameTitle>{game.title}</GameTitle>
-                <GameImage src={game.thumbnail || "/placeholder.jpg"} alt={game.title} />
+                <GameImage src={game.thumbnail || `/Game_Logos/${game.id}.png`} alt={game.title} />
                 <GameDescription>{game.description}</GameDescription>
                 <PlayButton>
                   Play Now

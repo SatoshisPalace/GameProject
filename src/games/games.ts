@@ -4,7 +4,6 @@ export interface Game {
   description: string;
   thumbnail?: string;
   status: 'live' | 'coming_soon';
-  component: string;
 }
 
 export const games: Game[] = [
@@ -13,27 +12,29 @@ export const games: Game[] = [
     title: 'PONG',
     description: 'Experience the timeless classic reimagined for the blockchain era. Compete for high scores!',
     status: 'live',
-    component: 'PongGame'
   },
   {
-    id: 'TETRIS',
+    id: 'BRICK_BLITZ',
     title: 'Brick Blitz',
     description: 'The legendary puzzle game meets blockchain. Stack, clear lines, and compete for high scores on the blockchain!',
     status: 'live',
-    component: 'TetrisGame'
   },
   {
-    id: 'SATOSHIMAN',
+    id: 'MAZE_MUNCHER',
     title: 'Maze Muncher',
     description: 'Navigate through the maze, collect coins, and avoid ghosts in this blockchain-powered arcade adventure!',
     status: 'live',
-    component: 'SatoshiManGame'
   },
   {
-    id: 'FEASTFAMINE',
+    id: 'FEAST_OR_FAMINE',
     title: 'Feast or Famine',
     description: 'Control your blob and feast or famine in this exciting arcade game. Compete for the highest score!',
     status: 'live',
-    component: 'FEASTFAMINE'
+  },
+  {
+    id: 'Ghost_Hunt',
+    title: 'Ghost Hunt',
+    description: 'Play with freinds to survive waves of ghosts. Compete for the highest score!',
+    status: 'coming_soon',
   },
 ];

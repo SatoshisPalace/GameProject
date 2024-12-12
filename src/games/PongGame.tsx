@@ -17,7 +17,7 @@ const GameContainer = styled.div`
   position: relative;
 `;
 
-const PongGame: React.FC = () => {
+const PongGame: React.FC<{ gameId: string }> = ({ gameId }) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
@@ -35,7 +35,7 @@ const PongGame: React.FC = () => {
     if (address) {
       setIsSavingScore(true);
       try {
-        const result = await submitScore({ address }, 'PONG', finalScore);
+        const result = await submitScore({ address }, gameId, finalScore);
         setTransactionId(result.id);
         console.log('Score submitted successfully:', result);
       } catch (error) {
@@ -54,7 +54,7 @@ const PongGame: React.FC = () => {
 
   return (
     <GameContainer>
-      <HUD score={score} gameId={'PONG'} />
+      <HUD score={score} gameId={gameId} />
       <Game 
         onScoreUpdate={handleScoreUpdate}
         onGameOver={handleGameOver}
