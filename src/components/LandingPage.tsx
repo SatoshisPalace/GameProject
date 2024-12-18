@@ -2,12 +2,12 @@
 import React, { useState, lazy, Suspense, useEffect } from 'react';
 import styled from 'styled-components';
 import WalletConnection from '../shared-components/Wallet/WalletConnection';
-import { WalletProvider } from '../shared-components/Wallet/WalletContext';
+import { WalletProvider, useWallet } from '../shared-components/Wallet/WalletContext';
 import type { Game } from '../games/games';
 import { games } from '../games/games';
 import { GlobalStyle, MainContainer, Header, LogoSection, Logo, FooterLogo } from './HUD';
 import '../styles/HeroAnimation.css';
-
+import { registerGame } from '../shared-components/Leaderboard/utils/leaderboard';
 
 // Lazy load game components
 const PongGame = lazy(() => import('../games/PongGame'));
@@ -233,6 +233,37 @@ const ComingSoonOverlay = styled.div`
   border: 1px solid rgba(255, 255, 255, 0.1);
 `;
 
+const GameWrapper = ({ game, onClose }: { game: Game; onClose: () => void }) => {
+  const { address } = useWallet();
+
+  useEffect(() => {
+    const registerSelectedGame = async () => {
+      if (address) {
+        try {
+          await registerGame({ arweaveWallet: window.arweaveWallet }, game.id);
+          console.log(`Game ${game.id} registered successfully`);
+        } catch (error) {
+          console.error(`Error registering game ${game.id}:`, error);
+        }
+      }
+    };
+
+    registerSelectedGame();
+  }, [game.id, address]);
+
+  return (
+    <GameContainer>
+      <CloseButton onClick={onClose}></CloseButton>
+      <Suspense fallback={<div>Loading game...</div>}>
+        {game.id === 'PONG' && <PongGame gameId={'PONG'} />}
+        {game.id === 'BRICK_BLITZ' && <TetrisGame gameId={'BRICK_BLITZ'} />}
+        {game.id === 'MAZE_MUNCHER' && <SatoshiManGame gameId={'MAZE_MUNCHER'} />}
+        {game.id === 'FEAST_OR_FAMINE' && <FeastFamine gameId={'FEAST_OR_FAMINE'} />}
+      </Suspense>
+    </GameContainer>
+  );
+};
+
 const LandingPage: React.FC = () => {
   const [selectedGame, setSelectedGame] = useState<Game | null>(null);
 
@@ -241,38 +272,16 @@ const LandingPage: React.FC = () => {
   };
 
   const handleCloseGame = () => {
-    if (selectedGame?.id === 'FEAST_OR_FAMINE') {
-      setSelectedGame(null);
-      // Only refresh when explicitly closing FeastFamine
-      window.location.reload();
-    } else {
-      setSelectedGame(null);
-      document.body.style.overflow = 'auto';
-    }
+    setSelectedGame(null);
   };
-
-  useEffect(() => {
-    // Cleanup function when game component unmounts
-    return () => {
-      document.body.style.overflow = 'auto';
-    };
-  }, [selectedGame]);
 
   const renderGameComponent = () => {
     if (!selectedGame) return null;
 
     return (
-      <GameContainer>
-        <CloseButton onClick={handleCloseGame}></CloseButton>
-        <Suspense fallback={<div>Loading game...</div>}>
-          <WalletProvider>
-            {selectedGame?.id === 'PONG' && <PongGame gameId={'PONG'} />}
-            {selectedGame?.id === 'BRICK_BLITZ' && <TetrisGame gameId={'BRICK_BLITZ'} />}
-            {selectedGame?.id === 'MAZE_MUNCHER' && <SatoshiManGame gameId={'MAZE_MUNCHER'} />}
-            {selectedGame?.id === 'FEAST_OR_FAMINE' && <FeastFamine gameId={'FEAST_OR_FAMINE'} />}
-          </WalletProvider>
-        </Suspense>
-      </GameContainer>
+      <WalletProvider>
+        <GameWrapper game={selectedGame} onClose={handleCloseGame} />
+      </WalletProvider>
     );
   };
 

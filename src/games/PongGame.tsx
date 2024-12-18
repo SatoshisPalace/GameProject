@@ -17,7 +17,11 @@ const GameContainer = styled.div`
   position: relative;
 `;
 
-const PongGame: React.FC<{ gameId: string }> = ({ gameId }) => {
+interface PongGameProps {
+  gameId: string;
+}
+
+const PongGame: React.FC<PongGameProps> = ({ gameId }) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
   const [isSavingScore, setIsSavingScore] = useState(false);
