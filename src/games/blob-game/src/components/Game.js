@@ -48,7 +48,9 @@ const Game = ({ onGameOver }) => {
             y: 0,
             radius: 20,
             color: '#FFFFFF',
-            speed: 2
+            speed: 2,
+            speedBoost: false,
+            speedBoostEndTime: 0  // Add these two lines
         },
         foods: [],
         bots: [],
@@ -410,10 +412,11 @@ const Game = ({ onGameOver }) => {
                     return;
                 } else {
                     // Player eats bot
-                    botsToRemove.push(bot);
-                    gameStateRef.current.player.radius += bot.radius * BOT_GROWTH_RATE;
-                    gameStateRef.current.currentScore += 10; // Changed from Math.floor(bot.radius * 10) to just 10
-                    handleScoreUpdate(gameStateRef.current.currentScore);
+// Player eats bot
+botsToRemove.push(bot);
+gameStateRef.current.player.radius += bot.radius * BOT_GROWTH_RATE;
+gameStateRef.current.currentScore += 100 + (bot.radius * 10); // 100 base points plus size value
+handleScoreUpdate(gameStateRef.current.currentScore);
                     skipRemainingCollisions = true;
                 }
             }
@@ -606,10 +609,14 @@ const Game = ({ onGameOver }) => {
 
             if (distance > 5) {
                 const speedMultiplier = Math.max(0.5, 2 - (player.radius / STARTING_RADIUS) * 0.5);
+                const boostMultiplier = player.speedBoost ? 2 : 1;
+                const newX = player.x + (dx / distance) * player.speed * speedMultiplier * boostMultiplier;
+                const newY = player.y + (dy / distance) * player.speed * speedMultiplier * boostMultiplier;
                 
-                // Calculate new position
-                const newX = player.x + (dx / distance) * player.speed * speedMultiplier;
-                const newY = player.y + (dy / distance) * player.speed * speedMultiplier;
+                // Add this at the end of movement update
+                if (player.speedBoost && Date.now() > player.speedBoostEndTime) {
+                    player.speedBoost = false;
+                }
                 
                 // Clamp position within world bounds
                 player.x = Math.max(player.radius, Math.min(WORLD_WIDTH - player.radius, newX));
@@ -646,7 +653,7 @@ const Game = ({ onGameOver }) => {
                 const sizeIncrease = growthFactor;
                 
                 // Update score and size
-                gameStateRef.current.currentScore++;
+gameStateRef.current.currentScore += 10; // Change to 10 points per food
                 player.radius = Math.min(MAX_RADIUS, player.radius + sizeIncrease);
                 
                 handleScoreUpdate(gameStateRef.current.currentScore);
@@ -803,6 +810,18 @@ const Game = ({ onGameOver }) => {
             gameStateRef.current.mouse.y = e.clientY - rect.top;
         };
 
+        const handleKeyDown = (e) => {
+            if (e.code === 'Space' && gameStateRef.current.gameActive) {
+                const player = gameStateRef.current.player;
+                if (!player.speedBoost && player.radius > STARTING_RADIUS) {
+                    player.radius -= 1;
+                    player.speedBoost = true;
+                    player.speedBoostEndTime = Date.now() + 2500;
+                }
+            }
+        };
+        window.addEventListener('keydown', handleKeyDown);
+
         // Handle window resize
         const handleResize = () => {
             if (!canvas) return;
@@ -849,8 +868,17 @@ const Game = ({ onGameOver }) => {
         }
     }, [walletConnected, walletAddress]);
 
+    const handleEndGame = () => {
+        const finalScore = Math.floor(gameStateRef.current.currentScore);
+        handleScoreUpdate(finalScore);
+        handleGameOver();
+    };
+
     return (
         <div>
+            <button className="end-game-button" onClick={handleEndGame}>
+            End Game
+        </button>
             <canvas ref={canvasRef} />
             {gameOver && (
                 <GameOver

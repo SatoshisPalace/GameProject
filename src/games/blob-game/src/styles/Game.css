@@ -309,6 +309,26 @@ canvas {
     animation: spin 1s ease-in-out infinite;
 }
 
+.end-game-button {
+    position: fixed;
+    top: 20px;
+    left: 20px;
+    padding: 10px 20px;
+    background-color: #ff4444;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    font-size: 16px;
+    font-weight: bold;
+    z-index: 1000;
+    transition: background-color 0.2s;
+}
+
+.end-game-button:hover {
+    background-color: #ff2222;
+}
+
 @keyframes spin {
     to { transform: rotate(360deg); }
 }

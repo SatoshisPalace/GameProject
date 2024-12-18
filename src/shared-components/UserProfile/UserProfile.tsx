@@ -3,6 +3,7 @@ import styled from 'styled-components';
 import { BazarProfile } from '../Wallet/types';
 import { checkBazarProfile } from '../Wallet/utils/bazarProfile';
 import { gatewayUrl } from '../Constants';
+import ProfilePicture from './ProfilePicture';
 
 interface UserProfileProps {
   address: string;
@@ -15,28 +16,6 @@ const UserInfoContainer = styled.div`
   align-items: center;
   gap: 12px;
   padding: 8px;
-`;
-
-const ProfileImage = styled.div<{ imageUrl?: string }>`
-  width: 48px;
-  height: 48px;
-  border-radius: 50%;
-  background: ${props => props.imageUrl ? `url(${props.imageUrl})` : '#2a2a2a'};
-  background-size: cover;
-  background-position: center;
-  border: 2px solid rgba(255, 255, 255, 0.1);
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  
-  &::after {
-    content: '';
-    display: ${props => props.imageUrl ? 'none' : 'block'};
-    width: 24px;
-    height: 24px;
-    background: rgba(255, 255, 255, 0.1);
-    border-radius: 50%;
-  }
 `;
 
 const NameAndAddressContainer = styled.div`
@@ -113,7 +92,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
 
   return (
     <UserInfoContainer>
-      <ProfileImage imageUrl={imageUrl} />
+      <ProfilePicture imageUrl={imageUrl} />
       <NameAndAddressContainer>
         <PlayerNameAndWallet>
           {isLoading ? (
