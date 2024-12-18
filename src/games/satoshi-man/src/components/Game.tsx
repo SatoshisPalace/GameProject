@@ -418,7 +418,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
     }
 
     requestRef.current = requestAnimationFrame(gameLoop);
-  }, [draw, update, isGameOver]);
+  }, [ isGameOver]);
 
   const resetGame = useCallback(() => {
     // Cancel current game loop
@@ -500,20 +500,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
     setGameStarted(true);
 
     // Start game loop
-    const animate = (timestamp: number) => {
-      if (!lastTimeRef.current) lastTimeRef.current = timestamp;
-      const deltaTime = timestamp - lastTimeRef.current;
-      lastTimeRef.current = timestamp;
-
-      if (!isGameOver) {
-        update(deltaTime);
-        draw();
-      }
-
-      requestRef.current = requestAnimationFrame(animate);
-    };
-
-    requestRef.current = requestAnimationFrame(animate);
+    requestRef.current = requestAnimationFrame(gameLoop);
 
     return () => {
       if (requestRef.current) {
@@ -521,7 +508,7 @@ const Game: React.FC<GameProps> = ({ onScoreUpdate, onGameOver, onRestart }) => 
       }
       isSubmittingRef.current = false;
     };
-  }, [draw, initializeGame, isGameOver, update]);
+  }, [initializeGame]);
 
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {

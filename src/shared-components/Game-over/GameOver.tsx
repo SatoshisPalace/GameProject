@@ -135,7 +135,7 @@ const GameOver: React.FC<GameOverProps> = ({ score, onRestart, isSavingScore, tx
   return (
     <GameOverOverlay>
       <GameOverContainer>
-        <GameOverTitle>Game Over!</GameOverTitle>
+        <GameOverTitle>Game Over0!</GameOverTitle>
         <Score>Final Score: {score}</Score>
         {(isSavingScore || txId) && (
           <TransactionStatus isLoading={isSavingScore}>

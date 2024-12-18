@@ -4,6 +4,7 @@ import { LeaderboardEntry, PlayerData, GameStats, TotalGameStats } from '../type
 import { getTopPlayers, getPlayerHistory, getGameStats, getRecentPlayers, getTotalGameStats } from '../utils/leaderboard';
 import { useWallet } from '../../Wallet/WalletContext';
 import UserProfile from '../../UserProfile/UserProfile';
+import { gatewayUrl } from '../../Constants';
 
 const LeaderboardContainer = styled.div`
   position: fixed;
@@ -425,22 +426,7 @@ const UserInfoContainer = styled.div`
   padding: 8px;
 `;
 
-const NameAndAddressContainer = styled.div`
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-`;
 
-const ProfileImage = styled.div<{ imageUrl?: string }>`
-  width: 32px;
-  height: 32px;
-  border-radius: 50%;
-  margin-right: 12px;
-  background: ${props => props.imageUrl ? `url(https://permagate.io/${props.imageUrl})` : '#808080'};
-  background-size: cover;
-  background-position: center;
-  flex-shrink: 0;
-`;
 
 const PlayerInfoContent = styled.div`
   display: flex;

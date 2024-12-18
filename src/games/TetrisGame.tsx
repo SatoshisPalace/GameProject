@@ -5,7 +5,7 @@ import  HUD  from '../shared-components/HUD/HUD';
 import { submitScore } from '../shared-components/Leaderboard/utils/leaderboard';
 import { useWallet } from '../shared-components/Wallet/WalletContext';
 
-const GameWrapper = styled.div`
+const GameContainer = styled.div`
   width: 100%;
   height: 100vh;
   display: flex;
@@ -31,6 +31,7 @@ const TetrisGame: React.FC<{ gameId: string }> = ({ gameId }) => {
 
   const handleGameOver = async (finalScore: number) => {
     setIsGameOver(true);
+    console.log('Game Over - Current Address:', address);
     
     if (address) {
       setIsSavingScore(true);
@@ -54,7 +55,7 @@ const TetrisGame: React.FC<{ gameId: string }> = ({ gameId }) => {
   };
 
   return (
-    <GameWrapper>
+    <GameContainer>
       <HUD score={score} gameId={gameId} />
       <Game
         key={gameKey}
@@ -66,7 +67,7 @@ const TetrisGame: React.FC<{ gameId: string }> = ({ gameId }) => {
       {transactionId && (
         <div>Score saved! Transaction ID: {transactionId}</div>
       )}
-    </GameWrapper>
+    </GameContainer>
   );
 };
 

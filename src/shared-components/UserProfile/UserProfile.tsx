@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import styled from 'styled-components';
 import { BazarProfile } from '../Wallet/types';
 import { checkBazarProfile } from '../Wallet/utils/bazarProfile';
+import { gatewayUrl } from '../Constants';
 
 interface UserProfileProps {
   address: string;
@@ -107,7 +108,7 @@ const UserProfile: React.FC<UserProfileProps> = ({
   }, [address, providedBazarProfile]);
 
   const imageUrl = bazarProfile?.ProfileImage ? 
-    `https://permagate.io/${bazarProfile.ProfileImage}` : 
+    `${gatewayUrl}${bazarProfile.ProfileImage}` : 
     undefined;
 
   return (

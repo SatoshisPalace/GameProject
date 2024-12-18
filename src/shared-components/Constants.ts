@@ -1,0 +1,1 @@
+export const gatewayUrl = "https://ar.satoshispalace.casino/";

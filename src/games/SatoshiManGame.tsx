@@ -1,7 +1,7 @@
-import React, { useState, useCallback } from 'react';
+import React, { useState } from 'react';
 import styled from 'styled-components';
 import Game from './satoshi-man/src/components/Game';
-import  HUD  from '../shared-components/HUD/HUD';
+import HUD from '../shared-components/HUD/HUD';
 import { submitScore } from '../shared-components/Leaderboard/utils/leaderboard';
 import { useWallet } from '../shared-components/Wallet/WalletContext';
 
@@ -17,11 +17,6 @@ const GameContainer = styled.div`
   position: relative;
 `;
 
-const GameWrapper = styled.div`
-  width: 100%;
-  height: 100%;
-`;
-
 const SatoshiManGame: React.FC<{ gameId: string }> = ({ gameId }) => {
   const [score, setScore] = useState(0);
   const [isGameOver, setIsGameOver] = useState(false);
@@ -30,13 +25,13 @@ const SatoshiManGame: React.FC<{ gameId: string }> = ({ gameId }) => {
   const [gameKey, setGameKey] = useState(0);
   const { address } = useWallet();
 
-  const handleScoreUpdate = useCallback((newScore: number) => {
-    if (isGameOver) return;
+  const handleScoreUpdate = (newScore: number) => {
     setScore(newScore);
-  }, [isGameOver]);
+  };
 
-  const handleGameOver = useCallback(async (finalScore: number) => {
+  const handleGameOver = async (finalScore: number) => {
     setIsGameOver(true);
+    console.log('Game Over - Current Address:', address);
     
     if (address) {
       setIsSavingScore(true);
@@ -50,30 +45,28 @@ const SatoshiManGame: React.FC<{ gameId: string }> = ({ gameId }) => {
         setIsSavingScore(false);
       }
     }
-  }, [address, gameId]);
+  };
 
-  const handleRestart = useCallback(() => {
-    setIsGameOver(false);
+  const handleRestart = () => {
     setScore(0);
+    setIsGameOver(false);
     setTransactionId('');
     setGameKey(prev => prev + 1);
-  }, []);
+  };
 
   return (
     <GameContainer>
       <HUD score={score} gameId={gameId} />
-      <GameWrapper>
-        <Game
-          key={gameKey}
-          onScoreUpdate={handleScoreUpdate}
-          onGameOver={handleGameOver}
-          onRestart={handleRestart}
-        />
-        {isSavingScore && <div>Saving score...</div>}
-        {transactionId && (
-          <div>Score saved! Transaction ID: {transactionId}</div>
-        )}
-      </GameWrapper>
+      <Game
+        key={gameKey}
+        onScoreUpdate={handleScoreUpdate}
+        onGameOver={handleGameOver}
+        onRestart={handleRestart}
+      />
+      {isSavingScore && <div>Saving score...</div>}
+      {transactionId && (
+        <div>Score saved! Transaction ID: {transactionId}</div>
+      )}
     </GameContainer>
   );
 };
